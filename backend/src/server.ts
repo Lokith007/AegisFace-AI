@@ -1,8 +1,10 @@
 import { createApp } from './app';
 import { config } from './config';
 import { getDb } from './db';
+import { seedIfEmpty } from './startup';
 
 getDb(); // initialize DB + run schema migration on boot
+seedIfEmpty(); // auto-create admin + device on first run
 const app = createApp();
 
 app.listen(config.port, () => {
