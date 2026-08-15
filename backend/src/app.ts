@@ -1,6 +1,7 @@
 import express, { ErrorRequestHandler } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
+import path from 'path';
 import './types'; // load Express Request augmentation
 import healthRouter from './routes/health';
 import authRouter from './routes/auth';
@@ -22,6 +23,9 @@ export function createApp() {
   app.use('/api/v1/enrollments', enrollmentsRouter);
   app.use('/api/v1/sync', syncRouter);
   app.use('/api/v1/attendance', attendanceRouter);
+
+  // Serve profile images
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
   app.use((_req, res) => {
     res.status(404).json({ error: 'not_found' });

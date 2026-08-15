@@ -6,6 +6,8 @@ import { config } from '../config';
 import { signToken, verifyToken } from '../auth/jwt';
 import { requireAuth } from '../auth/middleware';
 import type { UserRow } from '../types';
+import fs from 'fs';
+import path from 'path';
 
 const router = Router();
 
@@ -14,6 +16,7 @@ const registerSchema = z.object({
   name: z.string().min(1).max(128),
   password: z.string().min(8).max(128).optional(),
   role: z.enum(['admin', 'operator', 'field']).optional(),
+  profileImage: z.string().optional(), // base64 string
 });
 
 const loginSchema = z.object({
@@ -61,15 +64,34 @@ router.post('/register', (req, res) => {
     ? bcrypt.hashSync(parsed.data.password, config.bcryptRounds)
     : null;
 
+  let profileImageUrl: string | null = null;
+  if (parsed.data.profileImage) {
+    try {
+      const uploadsDir = path.join(process.cwd(), 'uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      // Remove data URI prefix if present
+      const base64Data = parsed.data.profileImage.replace(/^data:image\/\w+;base64,/, '');
+      const filename = `${parsed.data.employeeId}_${Date.now()}.jpg`;
+      const filepath = path.join(uploadsDir, filename);
+      fs.writeFileSync(filepath, base64Data, 'base64');
+      profileImageUrl = `/uploads/${filename}`;
+    } catch (err) {
+      console.error('Failed to save profile image', err);
+    }
+  }
+
   try {
     const info = db
-      .prepare('INSERT INTO users (employee_id, name, password_hash, role) VALUES (?, ?, ?, ?)')
-      .run(parsed.data.employeeId, parsed.data.name, passwordHash, role);
+      .prepare('INSERT INTO users (employee_id, name, password_hash, role, profile_image) VALUES (?, ?, ?, ?, ?)')
+      .run(parsed.data.employeeId, parsed.data.name, passwordHash, role, profileImageUrl);
     res.status(201).json({
       id: info.lastInsertRowid,
       employeeId: parsed.data.employeeId,
       name: parsed.data.name,
       role,
+      profileImage: profileImageUrl,
     });
   } catch (e) {
     if (e instanceof Error && e.message.includes('UNIQUE')) {
@@ -99,8 +121,14 @@ router.post('/login', (req, res) => {
   const token = signToken({ sub: user.employee_id, role: user.role, name: user.name });
   res.json({
     token,
-    user: { employeeId: user.employee_id, name: user.name, role: user.role },
+    user: { employeeId: user.employee_id, name: user.name, role: user.role, profileImage: user.profile_image },
   });
+});
+
+router.get('/users', requireAuth(['admin']), (req, res) => {
+  const db = getDb();
+  const users = db.prepare('SELECT id, employee_id, name, role, active, created_at, profile_image FROM users ORDER BY name ASC').all();
+  res.json(users);
 });
 
 router.get('/me', requireAuth(), (req, res) => {

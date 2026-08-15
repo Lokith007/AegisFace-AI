@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
   id            INTEGER PRIMARY KEY AUTOINCREMENT,
   employee_id   TEXT NOT NULL UNIQUE,
   name          TEXT NOT NULL,
+  profile_image TEXT,
   password_hash TEXT,
   role          TEXT NOT NULL DEFAULT 'field' CHECK (role IN ('admin','operator','field')),
   active        INTEGER NOT NULL DEFAULT 1,
