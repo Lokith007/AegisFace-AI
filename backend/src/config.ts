@@ -11,6 +11,10 @@ export const config = {
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '12h',
   bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS || '10', 10),
   dbPath: process.env.DB_PATH || path.join(process.cwd(), 'data', 'datalake.db'),
+  // Re-create demo employees + attendance history on boot. Intended for
+  // ephemeral hosting (e.g. Render free tier) where the DB is wiped on every
+  // restart. Off unless explicitly enabled.
+  seedDemoData: process.env.SEED_DEMO_DATA === 'true',
   embedding: {
     // A face embedding is a fixed-length numeric vector. We don't run the AI
     // model here — we only validate and store what the device sends.
