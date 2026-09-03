@@ -1,29 +1,54 @@
+# Dependencies
 node_modules/
+*/node_modules/
+package-lock.json.bak
+
+# Expo & React Native
 .expo/
 dist/
+web-build/
 npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Native Builds & Signatures
+android/
+ios/
+.gradle/
+.kotlin/
+*.hprof
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
 *.orig.*
-web-build/
+
+# Backend Data & Local Databases
+data/
+backend/data/
+*.db
+*.db-shm
+*.db-wal
+coverage/
+
+# Environment Files
 .env
 .env*.local
+*.env
+!.env.example
+!backend/.env.example
 
-# Native
-.kotlin/
-*.hprof
-
-# macOS
+# OS Metadata
 .DS_Store
+Thumbs.db
+Desktop.ini
 
-# IDE
+# IDE & Editors
 .idea/
 .vscode/
+*.swp
+*.swo
 
 # TypeScript
 *.tsbuildinfo
-
-# TFLite models are included in the build (required for on-device ML inference)
